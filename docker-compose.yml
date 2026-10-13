@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: storystream
+      POSTGRES_USER: storystream
+      POSTGRES_PASSWORD: storystream_dev
+    ports: ["5432:5432"]
+    volumes: ["storystream_pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U storystream -d storystream"]
+      interval: 5s
+      retries: 10
+
+  # Optional: run the API in Docker too (`docker compose up --build`).
+  api:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/storystream
+      DB_USER: storystream
+      DB_PASSWORD: storystream_dev
+    ports: ["8080:8080"]
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["full"]
+
+volumes:
+  storystream_pgdata:
